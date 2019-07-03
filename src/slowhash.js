@@ -3,8 +3,7 @@ function cn_slow_hash(data) {
     // 3. Scratchpad Initialization
     // First, the input is hashed using Keccak [KECCAK] with parameters 
     // b = 1600 and c = 512
-    var k1buffer = mykeccak256.arrayBuffer(data);
-    console.log(buf2hex(new Uint8Array(k1buffer)));
+    var k1buffer = mykeccak256.arrayBufferState(data);
     
     // A scratchpad of 2 097 152 bytes (2 MiB) is allocated.
     var scratchpad = new Uint8Array(2097152);

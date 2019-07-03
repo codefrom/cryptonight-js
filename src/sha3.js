@@ -40,7 +40,7 @@
     2147516545, 2147483648, 32896, 2147483648, 2147483649, 0, 2147516424, 2147483648];
   var BITS = [224, 256, 384, 512];
   var SHAKE_BITS = [128, 256];
-  var OUTPUT_TYPES = ['hex', 'buffer', 'arrayBuffer', 'array', 'digest'];
+  var OUTPUT_TYPES = ['hex', 'buffer', 'arrayBuffer', 'array', 'digest', 'arrayBufferState'];
   var CSHAKE_BYTEPAD = {
     '128': 168,
     '256': 136
@@ -399,6 +399,20 @@
     }
     return hex;
   };
+  
+  Keccak.prototype.arrayBufferState = function () {
+    this.finalize();
+    var array = new Uint8Array(this.s.length * 4);
+    var toSwap = new Uint8Array(new Uint32Array(this.s).buffer);
+    for(var i = 0; i < toSwap.length; i += 8) {
+        for(var j = 0; j < 8; j++) {
+            array[i + j] = toSwap[i + (7 - j)]
+        }
+    }
+    
+    return array.buffer;
+  };
+
 
   Keccak.prototype.arrayBuffer = function () {
     this.finalize();
