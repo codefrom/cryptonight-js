@@ -24,7 +24,7 @@ function cn_slow_hash(data) {
     var scratchpadPos = 0;
     for(var i = 0; i < 262144; i++) {
       // Each block is encrypted using the following procedure
-      blocks[i % 8] = aesHash.encrypt_rounds(blocks[i % 8]);
+      blocks[i % 8] = aesHash.encrypt_rounds(new Uint32Array(k1buffer, 64 + i * 16, 4));
       if (i % 8 == 7) {
         for(var j = 0; j < 8; j++) {
           for(var k = 0; k < 16; k++) {

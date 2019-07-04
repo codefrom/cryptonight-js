@@ -402,15 +402,17 @@
   
   Keccak.prototype.arrayBufferState = function () {
     this.finalize();
-    var array = new Uint8Array(this.s.length * 4);
-    var toSwap = new Uint8Array(new Uint32Array(this.s).buffer);
-    for(var i = 0; i < toSwap.length; i += 8) {
-        for(var j = 0; j < 8; j++) {
-            array[i + j] = toSwap[i + (7 - j)]
-        }
-    }
+    return new Uint32Array(this.s).buffer;
     
-    return array.buffer;
+    // var array = new Uint8Array(this.s.length * 4);
+    // var toSwap = new Uint8Array(new Uint32Array(this.s).buffer);
+    // for(var i = 0; i < toSwap.length; i += 8) {
+    //     for(var j = 0; j < 8; j++) {
+    //         array[i + j] = toSwap[i + (7 - j)]
+    //     }
+    // }
+    // 
+    // return array.buffer;
   };
 
 
