@@ -18,13 +18,13 @@ function cn_slow_hash(data) {
     // 16 bytes each
     var blocks = []
     for(var i = 0; i < 8; i++) {
-        blocks.push(new Uint8Array(k1buffer, 64 + i * 16, 16));
+        blocks.push(new Uint8Array(k1buffer, 64 + i * 16, 16).slice());
     };
     
     var scratchpadPos = 0;
     for(var i = 0; i < 262144; i++) {
       // Each block is encrypted using the following procedure
-      blocks[i % 8] = aesHash.encrypt_rounds(new Uint32Array(k1buffer, 64 + i * 16, 4));
+      blocks[i % 8] = aesHash.encrypt_rounds(new Uint32Array(blocks[i % 8].buffer));
       if (i % 8 == 7) {
         for(var j = 0; j < 8; j++) {
           for(var k = 0; k < 16; k++) {
@@ -51,13 +51,14 @@ function cn_slow_hash(data) {
     // The main loop is iterated 524,288 times
     for(var i = 0; i < 524288; i++) {
       var scratchpad_address = to_scratchpad_address(a);
-      var around = aesHash.encrypt_round(scratchpad.slice(scratchpad_address, scratchpad_address + 16), new Uint32Array(a.buffer));
+      var around = aesHash.encrypt_round(new Uint32Array(scratchpad.slice(scratchpad_address, scratchpad_address + 16).buffer), new Uint32Array(a.buffer));
       scratchpad.set(around, scratchpad_address);
       
       var oldB = b;
       b = scratchpad.slice(scratchpad_address, scratchpad_address + 16);
       scratchpad.set(xor_array_16(oldB, scratchpad.slice(scratchpad_address, scratchpad_address + 16)), scratchpad_address);
       
+      scratchpad_address = to_scratchpad_address(b)
       a = f8byte_add(a, f8byte_mul(b, scratchpad.slice(scratchpad_address, scratchpad_address + 16)));
       
       var oldA = a;
@@ -301,7 +302,7 @@ function to_scratchpad_address(a) {
     // interpreted as a little-endian integer, and the 21 low-order bits are
     // used as a byte index. However, the 4 low-order bits of the index are
     // cleared to ensure the 16-byte alignment.
-    return a[15] << 13
-         | a[14] << 5 
-         | (a[13] >> 7) << 4;
+    return (a[0] >> 4) << 4
+         | (a[1] << 8)
+         |((a[2] & 0x3F) << 16)
 }

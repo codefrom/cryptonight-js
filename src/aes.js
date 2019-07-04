@@ -281,10 +281,11 @@
 		
         // apply round transforms
         for (var i = 0; i < 4; i++) {
-            a[i] = (T1[(t[ i         ] >> 24) & 0xff] ^
-                    T2[(t[(i + 1) % 4] >> 16) & 0xff] ^
-                    T3[(t[(i + 2) % 4] >>  8) & 0xff] ^
-                    T4[ t[(i + 3) % 4]        & 0xff] ^
+            a[i] = (swap32(
+                    T1[(t[(i    )]) & 0xff] ^
+                    T2[(t[(i + 1) % 4] >>  8) & 0xff] ^
+                    T3[(t[(i + 2) % 4] >> 16) & 0xff] ^
+                    T4[(t[(i + 3) % 4] >> 24) & 0xff]) ^
                     k[i]);
         }
         return new Uint8Array(a.buffer);
@@ -304,13 +305,15 @@
         // apply round transforms
         for (var r = 0; r < rounds; r++) {
             for (var i = 0; i < 4; i++) {
-                a[i] = (
-                       swap32(T1[(t[(i    )]) & 0xff] ^
+                a[i] = (swap32(
+                        T1[(t[(i    )]) & 0xff] ^
                         T2[(t[(i + 1) % 4] >>  8) & 0xff] ^
                         T3[(t[(i + 2) % 4] >> 16) & 0xff] ^
                         T4[(t[(i + 3) % 4] >> 24) & 0xff]) ^
                         this._Ke[r][i]);
             }
+            if (r == 0)
+                t = new Uint32Array([0, 0, 0, 0]);
             t.set(a);
         }
 
