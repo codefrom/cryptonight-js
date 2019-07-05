@@ -1880,6 +1880,9 @@ groestl.innerg = function(input, format, output) {
   else if (format === 2) {
     msg = h.int32Buffer2Bytes(input);
   }
+  else if (format === 3) {
+    msg = input;
+  }
   else {
     msg = h.string2bytes(input);
   }

@@ -66,7 +66,7 @@
 
   var createOutputMethodMy = function (bits, padding, outputType) {
     return function (message) {
-      return new Keccak(bits, padding, 1600).update(message)[outputType]();
+      return new Keccak(bits, padding, 1600).update(message);//[outputType]();
     };
   };
   
@@ -399,6 +399,11 @@
     }
     return hex;
   };
+
+  Keccak.prototype.permutation = function() {
+      f(this.s);
+      return new Uint32Array(this.s).buffer; 
+  }
   
   Keccak.prototype.arrayBufferState = function () {
     this.finalize();
