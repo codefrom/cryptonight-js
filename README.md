@@ -3,7 +3,9 @@ Pure JavaScript realisation of Monero's (and others) CryptoNight hashing algorit
 
 ## Thanks to projects
 js-sha3 - https://github.com/emn178/js-sha3 (keccak algorithm)
+
 aes-js - https://github.com/ricmoo/aes-js (aes)
+
 groestl-hash-js - https://github.com/QuantumExplorer/groestl-hash-js (groestl)
 
 ## History
