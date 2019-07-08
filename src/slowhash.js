@@ -126,7 +126,7 @@ function cn_slow_hash(data) {
             result = buf2hex(blake.digest());
             break;
         case 1: // GROESTL-256
-            result = groestl.groestl(keccakState, 3);
+            result = buf2hex(groestl.groestl(keccakState));
             break;
         case 2: // JH-256
             result = faultylabs.hash.jh(keccakState, 256, 1600);

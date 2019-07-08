@@ -1891,7 +1891,7 @@ groestl.innerg = function(input, format, output) {
   for (var i = 0; i < 15; i++) {
     ctx.state[i] = new u64(0, 0);
   }
-  ctx.state[15] = new u64(0, 512);
+  ctx.state[15] = new u64(0, 65536);
   ctx.ptr = 0;
   ctx.count = new u64(0,0);
   ctx.buffer = new Array(128);

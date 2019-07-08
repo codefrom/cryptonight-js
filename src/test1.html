@@ -3,7 +3,7 @@
 <meta content="utf-8" http-equiv="encoding">
 </head><body>
 <script src="BigInteger.min.js"></script>
-<script src="groestl.js"></script>
+<script src="groestl-256.js"></script>
 <script src="halfskein.js"></script>
 <script src="jh.js"></script>
 <script src="blake256.js"></script>
@@ -24,6 +24,19 @@
   console.log('eb14e8a833fac6fe9a43b57b336789c46ffe93f2868452240720607b14387e11');
   //cn_slow_hash('This is a test');
   //console.log('a084f01d1437a09c6985401b60d43554ae105802c5f5d8a9b3253649c0be6605');
+  //   var keccakState = new Uint8Array(0);
+  //   var groe = buf2hex(groestl.groestl(keccakState));
+  //   console.log(groe);
+  //   console.log('1a52d11d550039be16107f9c58db9ebcc417f16f736adb2502567119f0083467');
+  // var keccakState = new TextEncoder().encode("The quick brown fox jumps over the lazy dog")
+  // var groe = buf2hex(groestl.groestl(keccakState));
+  // console.log(groe);
+  // console.log('8c7ad62eb26a21297bc39c2d7293b4bd4d3399fa8afab29e970471739e28b301');
+  
+  //var keccakState = new Uint8Array([1,29,129,41,16,180,166,172,23,43,251,203,45,156,55,126,48,197,236,96,239,162,172,183,170,199,174,61,14,233,105,199,146,17,209,229,14,164,194,6,16,200,206,51,185,112,234,120,19,148,76,188,113,160,154,38,146,199,72,12,190,90,68,189,44,114,17,5,111,220,182,14,109,231,190,203,37,144,112,162,135,108,219,179,225,1,189,167,170,87,100,144,78,89,147,197,31,17,214,9,132,22,69,136,60,31,252,162,66,182,46,188,205,12,152,248,207,165,192,189,133,124,243,80,0,206,200,94,113,70,76,222,178,210,208,247,236,148,42,173,27,59,240,151,133,42,149,7,196,100,62,206,166,203,196,159,63,129,207,18,174,154,37,185,159,61,144,94,103,135,235,194,118,37,138,54,247,188,200,206,158,132,212,35,5,128,225,124,192,79,187,218,101,254,127,56,208,236,4,74]);
+  //var groe = buf2hex(groestl.groestl(keccakState));
+  //console.log(groe);
+  //console.log('eb14e8a833fac6fe9a43b57b336789c46ffe93f2868452240720607b14387e11');
 </script>
 </body>
 
