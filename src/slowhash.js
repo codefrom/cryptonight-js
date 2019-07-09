@@ -1,3 +1,31 @@
+var bench_s = new Date();
+var bench_e = new Date();
+var bench_b = 1;
+var bench_bnames = {};
+
+function getBench() {
+    bench_e = new Date();
+    var t = (bench_e-bench_s);
+    console.log("BENCH #" + bench_b + " : " + t);
+    bench_b++;
+    bench_s = new Date();
+    return t;
+}
+
+function getBenchByName(name) {
+    if (!(name in bench_bnames))
+        bench_bnames[name] = { time : 0, count : 0 };
+    bench_e = new Date();
+    var t = (bench_e-bench_s);
+    bench_bnames[name].time += t;
+    bench_bnames[name].count++;
+    bench_s = new Date();
+}
+
+function showBenchsByName() {
+    console.log(bench_bnames);
+}
+
 function cn_slow_hash(data) {
     // ============================
     // 3. Scratchpad Initialization
@@ -21,11 +49,12 @@ function cn_slow_hash(data) {
     for(var i = 0; i < 8; i++) {
         blocks.push(new Uint8Array(k1buffer, 64 + i * 16, 16).slice());
     };
+    getBench();
     
     var scratchpadPos = 0;
     for(var i = 0; i < 262144; i++) {
       // Each block is encrypted using the following procedure
-      blocks[i % 8] = aesHash.encrypt_rounds(new Uint32Array(blocks[i % 8].buffer));
+      aesHash.encrypt_rounds(new Uint32Array(blocks[i % 8].buffer));
       if (i % 8 == 7) {
         for(var j = 0; j < 8; j++) {
           for(var k = 0; k < 16; k++) {
@@ -35,6 +64,7 @@ function cn_slow_hash(data) {
         }
       }
     }
+    getBench();
     
     // ===================
     // 4. Memory-Hard Loop
@@ -51,22 +81,30 @@ function cn_slow_hash(data) {
     
     // The main loop is iterated 524,288 times
     for(var i = 0; i < 524288; i++) {
+      getBenchByName("loopstart");
       var scratchpad_address = to_scratchpad_address(a);
-      var around = aesHash.encrypt_round(new Uint32Array(scratchpad.slice(scratchpad_address, scratchpad_address + 16).buffer), new Uint32Array(a.buffer));
-      scratchpad.set(around, scratchpad_address);
+      getBenchByName("0_scratchpad_address");
+      aesHash.encrypt_round(new Uint32Array(scratchpad.buffer, scratchpad_address, 4), new Uint32Array(a.buffer));
+      getBenchByName("1_aes");
       
       var oldB = b;
       b = scratchpad.slice(scratchpad_address, scratchpad_address + 16);
-      scratchpad.set(xor_array_16(oldB, scratchpad.slice(scratchpad_address, scratchpad_address + 16)), scratchpad_address);
+      scratchpad.set(xor_array_16(oldB, b), scratchpad_address);
+      getBenchByName("2_b");
       
       scratchpad_address = to_scratchpad_address(b)
-      var mul = f8byte_mul(b, scratchpad.slice(scratchpad_address, scratchpad_address + 16));
+      var mul = f8byte_mul(new Uint16Array(b.buffer), new Uint16Array(scratchpad.buffer, scratchpad_address, 4));
+      getBenchByName("3_a_mul");
       a = f8byte_add(a, mul);
+      getBenchByName("3_a_add");
       
       var oldA = a;
       a = xor_array_16(a, scratchpad.slice(scratchpad_address, scratchpad_address + 16))
       scratchpad.set(oldA, scratchpad_address);
+      getBenchByName("4_a");
+      getBenchByName("loopsfinish");
     }
+    showBenchsByName();
 
     // ======================
     // 5. Result Calculation
@@ -102,6 +140,7 @@ function cn_slow_hash(data) {
         };
       }
     }
+    getBench();
     
     // After XORing with the last 128 bytes of the scratchpad, the result is
     // encrypted the last time, and then the bytes 64..191 in the Keccak
@@ -119,6 +158,7 @@ function cn_slow_hash(data) {
     var keccakState = new Uint8Array(k2buffer, 0, 200);
     var lastHashType = keccakState[0] & 3;
     var result = "";
+    getBench();
     switch(lastHashType) {
         case 0: // BLAKE-256
             var blake = new Blake256();
@@ -143,14 +183,60 @@ function buf2hex(buffer) { // buffer is an ArrayBuffer
   return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
 }
 
-function f8byte_mul(a, b) {
+function swap32(val) {
+    return ((val & 0xFF) << 24)
+           | ((val & 0xFF00) << 8)
+           | ((val >> 8) & 0xFF00)
+           | ((val >> 24) & 0xFF);
+}
+
+function f8byte_mul(lea, leb) {
+    // The 8byte_mul function, however, uses only the first 8 bytes of each
+    // argument, which are interpreted as unsigned 64-bit little-endian
+    // integers and multiplied together. The result is converted into 16
+    // bytes, and finally the two 8-byte halves of the result are swapped.
+    // var lea = new Uint16Array(a.buffer);
+    // var leb = new Uint16Array(b.buffer);
+
+    var res16 = new Uint16Array(8);
+    var carry = 0;
+    
+    for(var i = 0; i < 4; i++) {
+        // multiply
+        carry = 0;
+        for(var j = 0; j < 4; j++) {
+            var m = lea[i] * leb[j] + carry;
+            var s = res16[j + i] + m;
+            res16[j + i] = s & 0xFFFF;
+            carry = s >>> 16;
+        }
+        var ind = 4 + i;
+        while(carry > 0 && ind < 8) {
+            var s = res16[ind] + carry;
+            res16[ind] = s & 0xFFFF;
+            carry = s >>> 16;
+            ind++;
+        }
+    }
+    // swapping 8 bytes...
+    var res32 = new Uint32Array(res16.buffer);
+    var temp1 = res32[0];
+    var temp2 = res32[1];
+    res32[0] = res32[2];
+    res32[1] = res32[3];
+    res32[2] = temp1;
+    res32[3] = temp2;
+    return new Uint8Array(res16.buffer);
+}
+
+function f8byte_mul_SLOW2(a, b) {
     // The 8byte_mul function, however, uses only the first 8 bytes of each
     // argument, which are interpreted as unsigned 64-bit little-endian
     // integers and multiplied together. The result is converted into 16
     // bytes, and finally the two 8-byte halves of the result are swapped.
     var lea = new Uint8Array([0,0,0,0,0,0,0,0,a[7], a[6], a[5], a[4], a[3], a[2], a[1], a[0]]);
     var leb = new Uint8Array([0,0,0,0,0,0,0,0,b[7], b[6], b[5], b[4], b[3], b[2], b[1], b[0]]);
-    
+
     var res8 = new Uint8Array(16);
     var carry = 0;
     
@@ -171,6 +257,7 @@ function f8byte_mul(a, b) {
             carry = Math.floor(s / 0x100);
         }
     }
+
     var res = new Uint8Array(16);
     for(var i = 0; i < res8.length; i++) { 
       res[i] = res8[(i >> 3) * 8 + (7 - i % 8)];

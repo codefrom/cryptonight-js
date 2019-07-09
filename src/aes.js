@@ -196,6 +196,7 @@
             value: coerceArray(key, true)
         });
 
+        this.array32of4 = new Uint32Array([0, 0, 0, 0]);
         this._prepare();
     }
 
@@ -277,7 +278,10 @@
     }
     
     AES.prototype.encrypt_round = function(t, k) {
-        var a = new Uint32Array([0, 0, 0, 0]);
+        var a = this.array32of4;
+        for(var i = 0; i < 4; i++) {
+            a[i] = 0;
+        }
 		
         // apply round transforms
         for (var i = 0; i < 4; i++) {
@@ -288,7 +292,8 @@
                     T4[(t[(i + 3) % 4] >> 24) & 0xff]) ^
                     k[i]);
         }
-        return new Uint8Array(a.buffer);
+        t.set(a);
+        //return new Uint8Array(a.buffer);
     }
     
     function swap32(val) {
@@ -300,8 +305,11 @@
     
     AES.prototype.encrypt_rounds = function(t) {
         var rounds = 10; //this._Ke.length - 1;
-        var a = new Uint32Array([0, 0, 0, 0]);
-		
+        var a = this.array32of4;
+        for(var i = 0; i < 4; i++) {
+            a[i] = 0;
+        }
+
         // apply round transforms
         for (var r = 0; r < rounds; r++) {
             for (var i = 0; i < 4; i++) {
@@ -312,11 +320,9 @@
                         T4[(t[(i + 3) % 4] >> 24) & 0xff]) ^
                         this._Ke[r][i]);
             }
-            if (r == 0)
-                t = new Uint32Array([0, 0, 0, 0]);
             t.set(a);
         }
-
+        
         return new Uint8Array(t.buffer);
     }
 	
