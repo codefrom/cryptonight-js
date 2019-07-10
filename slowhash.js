@@ -91,13 +91,13 @@ function cn_slow_hash(data) {
       b.set(scratchpad.subarray(scratchpad_address, scratchpad_address + 16));
       xor_array_16(oldB, b);
       scratchpad.set(oldB, scratchpad_address);
-      new Date();new Date();//getBenchByName("2_b");
+      new Date();new Date(); // TODO: I don't know why, but it is faster this way...
       
       scratchpad_address = to_scratchpad_address(b)
       f8byte_mul(mul, new Uint16Array(b.buffer), new Uint16Array(scratchpad.buffer, scratchpad_address, 4));
-      new Date();new Date();
+      new Date();new Date(); // TODO: I don't know why, but it is faster this way...
       a = f8byte_add(a, mul);
-      new Date();new Date();//getBenchByName("3_a_add");
+      new Date();new Date(); // TODO: I don't know why, but it is faster this way...
       
       oldA.set(a);
       xor_array_16(a, new Uint8Array(scratchpad.buffer, scratchpad_address, 16))
@@ -176,7 +176,7 @@ function cn_slow_hash(data) {
 }
 
 function buf2hex(buffer) { // buffer is an ArrayBuffer
-  return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+  return Array.prototype.map.call(new Uint8Array(buffer), function(x) { return ('00' + x.toString(16)).slice(-2);}).join('');
 }
 
 function swap32(val) {
@@ -225,42 +225,6 @@ function f8byte_mul(res, lea, leb) {
     res32[3] = temp2;
 }
 
-function f8byte_mul_SLOW2(a, b) {
-    // The 8byte_mul function, however, uses only the first 8 bytes of each
-    // argument, which are interpreted as unsigned 64-bit little-endian
-    // integers and multiplied together. The result is converted into 16
-    // bytes, and finally the two 8-byte halves of the result are swapped.
-    var lea = new Uint8Array([0,0,0,0,0,0,0,0,a[7], a[6], a[5], a[4], a[3], a[2], a[1], a[0]]);
-    var leb = new Uint8Array([0,0,0,0,0,0,0,0,b[7], b[6], b[5], b[4], b[3], b[2], b[1], b[0]]);
-
-    var res8 = new Uint8Array(16);
-    var carry = 0;
-    
-    for(var i = 15; i >= 0; i--) {
-        // multiply
-        carry = 0;
-        var res8_1 = new Uint8Array(16);
-        for(var j = 15; j >= (15 - i); j--) {
-            var m = lea[i] * leb[j] + carry;
-            res8_1[j - (15-i)] = m % 0x100;
-            carry = Math.floor(m / 0x100);
-        }
-        
-        carry = 0;
-        for(var j = 15; j >= 0; j--) {
-            var s = res8[j] + res8_1[j] + carry;
-            res8[j] = s % 0x100;
-            carry = Math.floor(s / 0x100);
-        }
-    }
-
-    var res = new Uint8Array(16);
-    for(var i = 0; i < res8.length; i++) { 
-      res[i] = res8[(i >> 3) * 8 + (7 - i % 8)];
-    }
-    return res;    
-}
-
 function f8byte_add(a, b) {
     // Where, the 8byte_add function represents each of the arguments as a
     // pair of 64-bit little-endian values and adds them together,
@@ -293,47 +257,6 @@ function f8byte_add(a, b) {
     }
     for(var i = 0; i < 8; i++) { 
       res[7 - i] = addition2[i];
-    }
-    return res;    
-}
-
-function f8byte_mul_SLOW(a, b) {
-    // The 8byte_mul function, however, uses only the first 8 bytes of each
-    // argument, which are interpreted as unsigned 64-bit little-endian
-    // integers and multiplied together. The result is converted into 16
-    // bytes, and finally the two 8-byte halves of the result are swapped.
-    var lea = new Uint8Array([a[7], a[6], a[5], a[4], a[3], a[2], a[1], a[0]]);
-    var leb = new Uint8Array([b[7], b[6], b[5], b[4], b[3], b[2], b[1], b[0]]);
-    
-    
-    var multiple = bufToBn(lea).multiply(bufToBn(leb));
-    var multipleArr = bnToBuf(multiple);
-    var res = new Uint8Array(16);
-    for(var i = 0; i < multipleArr.length; i++) { 
-      res[15 - i] = multipleArr[i];
-    }
-    return res;    
-}
-
-function f8byte_add_SLOW(a, b) {
-    // Where, the 8byte_add function represents each of the arguments as a
-    // pair of 64-bit little-endian values and adds them together,
-    // component-wise, modulo 2^64. The result is converted back into 16
-    // bytes.
-    var lea1 = new Uint8Array([a[15], a[14], a[13], a[12], a[11], a[10], a[9], a[8]]);
-    var lea2 = new Uint8Array([a[7], a[6], a[5], a[4], a[3], a[2], a[1], a[0]]);
-    var leb1 = new Uint8Array([b[15], b[14], b[13], b[12], b[11], b[10], b[9], b[8]]);
-    var leb2 = new Uint8Array([b[7], b[6], b[5], b[4], b[3], b[2], b[1], b[0]]);
-    var addition1 = bufToBn(lea1).add(bufToBn(leb1)).remainder(bigInt('10000000000000000', 16));
-    var addition2 = bufToBn(lea2).add(bufToBn(leb2)).remainder(bigInt('10000000000000000', 16));
-    var additionArr1 = bnToBuf(addition1);
-    var additionArr2 = bnToBuf(addition2);
-    var res = new Uint8Array(16);
-    for(var i = 0; i < 8; i++) { 
-      res[15 - i] = additionArr1[i];
-    }
-    for(var i = 0; i < 8; i++) { 
-      res[7 - i] = additionArr2[i];
     }
     return res;    
 }
