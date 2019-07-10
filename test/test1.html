@@ -1,0 +1,30 @@
+<html><head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+</head><body>
+<script src="../lib/groestl-256.js"></script>
+<script src="../lib/skein.js"></script>
+<script src="../lib/jh.js"></script>
+<script src="../lib/blake256.js"></script>
+<script src="../lib/sha3.js"></script>
+<script src="../lib/aes.js"></script>
+<script src="../slowhash.js"></script>
+<script>
+  // hash 1
+  cn_slow_hash('');
+  console.log('eb14e8a833fac6fe9a43b57b336789c46ffe93f2868452240720607b14387e11');
+  // hash 1
+  cn_slow_hash('This is a test');
+  console.log('a084f01d1437a09c6985401b60d43554ae105802c5f5d8a9b3253649c0be6605');
+  // hash 0
+  cn_slow_hash('de omnibus dubitandum');
+  console.log('2f8e3df40bd11f9ac90c743ca8e32bb391da4fb98612aa3b6cdc639ee00b31f5');
+  // hash 2
+  cn_slow_hash('caveat emptor');
+  console.log('bbec2cacf69866a8e740380fe7b818fc78f8571221742d729d9d02d7f8989b87');
+  // hash 3
+  cn_slow_hash('ex nihilo nihil fit');
+  console.log('b1257de4efc5ce28c6b40ceb1c6c8f812a64634eb3e81c5220bee9b2b76a6f05');
+</script>
+</body>
+
