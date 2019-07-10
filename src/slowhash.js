@@ -49,7 +49,6 @@ function cn_slow_hash(data) {
     for(var i = 0; i < 8; i++) {
         blocks.push(new Uint8Array(k1buffer, 64 + i * 16, 16).slice());
     };
-    getBench();
     
     var scratchpadPos = 0;
     for(var i = 0; i < 262144; i++) {
@@ -64,7 +63,6 @@ function cn_slow_hash(data) {
         }
       }
     }
-    getBench();
     
     // ===================
     // 4. Memory-Hard Loop
@@ -76,35 +74,35 @@ function cn_slow_hash(data) {
     for(var i = 0; i < 32; i++) {
       ab[i] = first2k1[i] ^ first2k1[i + 32];
     }
-    var a = new Uint8Array(ab.buffer, 0, 16);
-    var b = new Uint8Array(ab.buffer, 16, 16);
+    var a = new Uint8Array(16);
+    a.set(new Uint8Array(ab.buffer, 0, 16));
+    var b = new Uint8Array(16);
+    b.set(new Uint8Array(ab.buffer, 16, 16));
+    var mul = new Uint8Array(16);
+    var oldA = new Uint8Array(16);
+    var oldB = new Uint8Array(16);
     
     // The main loop is iterated 524,288 times
     for(var i = 0; i < 524288; i++) {
-      getBenchByName("loopstart");
       var scratchpad_address = to_scratchpad_address(a);
-      getBenchByName("0_scratchpad_address");
       aesHash.encrypt_round(new Uint32Array(scratchpad.buffer, scratchpad_address, 4), new Uint32Array(a.buffer));
-      getBenchByName("1_aes");
       
-      var oldB = b;
-      b = scratchpad.slice(scratchpad_address, scratchpad_address + 16);
-      scratchpad.set(xor_array_16(oldB, b), scratchpad_address);
-      getBenchByName("2_b");
+      oldB.set(b);
+      b.set(scratchpad.subarray(scratchpad_address, scratchpad_address + 16));
+      xor_array_16(oldB, b);
+      scratchpad.set(oldB, scratchpad_address);
+      new Date();new Date();//getBenchByName("2_b");
       
       scratchpad_address = to_scratchpad_address(b)
-      var mul = f8byte_mul(new Uint16Array(b.buffer), new Uint16Array(scratchpad.buffer, scratchpad_address, 4));
-      getBenchByName("3_a_mul");
+      f8byte_mul(mul, new Uint16Array(b.buffer), new Uint16Array(scratchpad.buffer, scratchpad_address, 4));
+      new Date();new Date();
       a = f8byte_add(a, mul);
-      getBenchByName("3_a_add");
+      new Date();new Date();//getBenchByName("3_a_add");
       
-      var oldA = a;
-      a = xor_array_16(a, scratchpad.slice(scratchpad_address, scratchpad_address + 16))
+      oldA.set(a);
+      xor_array_16(a, new Uint8Array(scratchpad.buffer, scratchpad_address, 16))
       scratchpad.set(oldA, scratchpad_address);
-      getBenchByName("4_a");
-      getBenchByName("loopsfinish");
     }
-    showBenchsByName();
 
     // ======================
     // 5. Result Calculation
@@ -140,7 +138,6 @@ function cn_slow_hash(data) {
         };
       }
     }
-    getBench();
     
     // After XORing with the last 128 bytes of the scratchpad, the result is
     // encrypted the last time, and then the bytes 64..191 in the Keccak
@@ -158,7 +155,6 @@ function cn_slow_hash(data) {
     var keccakState = new Uint8Array(k2buffer, 0, 200);
     var lastHashType = keccakState[0] & 3;
     var result = "";
-    getBench();
     switch(lastHashType) {
         case 0: // BLAKE-256
             var blake = new Blake256();
@@ -172,7 +168,7 @@ function cn_slow_hash(data) {
             result = faultylabs.hash.jh(keccakState, 256, 1600);
             break;
         case 3: // SKEIN-256
-            result = halfskein(keccakState);
+            result = buf2hex(skein256(keccakState)).substring(0, 64);
             break;
     }
     console.log(result);
@@ -189,8 +185,7 @@ function swap32(val) {
            | ((val >> 8) & 0xFF00)
            | ((val >> 24) & 0xFF);
 }
-
-function f8byte_mul(lea, leb) {
+function f8byte_mul(res, lea, leb) {
     // The 8byte_mul function, however, uses only the first 8 bytes of each
     // argument, which are interpreted as unsigned 64-bit little-endian
     // integers and multiplied together. The result is converted into 16
@@ -198,7 +193,9 @@ function f8byte_mul(lea, leb) {
     // var lea = new Uint16Array(a.buffer);
     // var leb = new Uint16Array(b.buffer);
 
-    var res16 = new Uint16Array(8);
+    var res16 = new Uint16Array(res.buffer);
+    for(var i = 0; i < 8; i++)
+        res16[i] = 0;
     var carry = 0;
     
     for(var i = 0; i < 4; i++) {
@@ -226,7 +223,6 @@ function f8byte_mul(lea, leb) {
     res32[1] = res32[3];
     res32[2] = temp1;
     res32[3] = temp2;
-    return new Uint8Array(res16.buffer);
 }
 
 function f8byte_mul_SLOW2(a, b) {
@@ -381,11 +377,9 @@ function xor_array_128(a, b) {
 }
 
 function xor_array_16(a, b) {
-    var ret = new Uint8Array(16);
-    for(var i = 0; i < 16; i++) {
-        ret[i] = a[i] ^ b[i];
+    for(var i = 0; i < a.length; i++) {
+        a[i] ^= b[i];
     }
-    return ret;
 }
 
 function xor_array_8(a, b) {

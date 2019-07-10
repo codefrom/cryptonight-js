@@ -4,7 +4,7 @@
 </head><body>
 <script src="BigInteger.min.js"></script>
 <script src="groestl-256.js"></script>
-<script src="halfskein.js"></script>
+<script src="skein.js"></script>
 <script src="jh.js"></script>
 <script src="blake256.js"></script>
 <script src="sha3.js"></script>
@@ -15,8 +15,11 @@
   //var bbb = new Uint8Array([2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
   //getBench();
   //for(var i = 0; i < 1000000; i++) {
-  //  var mul1 = f8byte_mul(aaa, bbb);
-  //  //var mul2 = f8byte_mul(new Uint16Array(aaa.buffer), new Uint16Array(bbb.buffer));
+  //  //var mul0 = 0xFFFFFFF * 0xFFFFFFF;
+  //  //var add1 = 0xFFFFFFF + 0xFFFFFFF;
+  //  //var t2 = 0xFFFFFFF >>> 32;
+  //  //var mul1 = f8byte_mul(aaa, bbb);
+  ////  //var mul2 = f8byte_mul(new Uint16Array(aaa.buffer), new Uint16Array(bbb.buffer));
   //}
   //getBench();
   //console.log(mul1);
@@ -39,10 +42,21 @@
   //console.log(mul1);
   //console.log(mul2);
 
-  cn_slow_hash('');
-  console.log('eb14e8a833fac6fe9a43b57b336789c46ffe93f2868452240720607b14387e11');
-  // cn_slow_hash('This is a test');
-  // console.log('a084f01d1437a09c6985401b60d43554ae105802c5f5d8a9b3253649c0be6605');
+  // hash 1
+  //cn_slow_hash('');
+  //console.log('eb14e8a833fac6fe9a43b57b336789c46ffe93f2868452240720607b14387e11');
+  // hash 1
+  //cn_slow_hash('This is a test');
+  //console.log('a084f01d1437a09c6985401b60d43554ae105802c5f5d8a9b3253649c0be6605');
+  // hash 0
+  //cn_slow_hash('de omnibus dubitandum');
+  //console.log('2f8e3df40bd11f9ac90c743ca8e32bb391da4fb98612aa3b6cdc639ee00b31f5');
+  // hash 2
+  //cn_slow_hash('caveat emptor');
+  //console.log('bbec2cacf69866a8e740380fe7b818fc78f8571221742d729d9d02d7f8989b87');
+  // hash 3
+  cn_slow_hash('ex nihilo nihil fit');
+  console.log('b1257de4efc5ce28c6b40ceb1c6c8f812a64634eb3e81c5220bee9b2b76a6f05');
   //   var keccakState = new Uint8Array(0);
   //   var groe = buf2hex(groestl.groestl(keccakState));
   //   console.log(groe);
